@@ -43,38 +43,137 @@ ul{list-style:none;}
 
 
 /* ============================================================
-   INSTALL PWA BUTTON
+   INSTALL PWA BUTTON (ancien — conservé pour compatibilité)
    ============================================================ */
-.install-bar{
-  display:none; /* shown by JS when prompt available */
-  align-items:center;justify-content:center;gap:12px;
-  padding:10px 5%;
-  background:rgba(21,101,232,.12);
-  border-bottom:1px solid rgba(47,139,255,.15);
-  position:relative;z-index:990;
+.install-bar{ display:none; }
+
+/* ============================================================
+   PWA BANNER — bandeau fixe bas de page (toujours visible mobile)
+   ============================================================ */
+#pwa-banner{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:2000;
+  display:flex;
+  justify-content:center;
+  padding:0 12px 16px;
+  /* Démarre hors écran, animé par JS */
+  transform:translateY(120%);
+  transition:transform .5s cubic-bezier(.22,1,.36,1);
+  /* Garantit la visibilité mobile — aucune media query ne le masque */
+  pointer-events:none;
 }
-.install-bar.visible{display:flex;}
-.install-bar-text{
-  font-family:var(--font-heading);font-size:.9rem;font-weight:600;
-  letter-spacing:.08em;color:var(--grey-light);
+#pwa-banner.pwa-show{
+  transform:translateY(0);
+  pointer-events:auto;
 }
-.install-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:9px 22px;border-radius:50px;border:none;cursor:pointer;
-  background:var(--blue-bright);color:var(--white);
-  font-family:var(--font-heading);font-weight:700;font-size:.85rem;
+.pwa-card{
+  width:100%;
+  max-width:500px;
+  background:rgba(10,22,40,.97);
+  border:1px solid rgba(47,139,255,.3);
+  border-radius:18px;
+  padding:16px 16px 14px;
+  box-shadow:0 -2px 30px rgba(0,0,0,.6), 0 0 60px rgba(21,101,232,.15);
+  /* Pas de backdrop-filter pour éviter les bugs Safari mobile */
+}
+/* Animation douce de halo */
+@keyframes pwaBorderPulse{
+  0%,100%{ box-shadow:0 -2px 30px rgba(0,0,0,.6), 0 0 30px rgba(21,101,232,.1); }
+  50%    { box-shadow:0 -2px 30px rgba(0,0,0,.6), 0 0 50px rgba(21,101,232,.3); }
+}
+.pwa-card{ animation:pwaBorderPulse 3s 1.5s ease-in-out infinite; }
+
+/* Ligne du haut : icône + texte + croix */
+.pwa-row1{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+.pwa-icon-wrap{
+  flex-shrink:0;
+  width:40px;height:40px;
+  background:linear-gradient(135deg,#1565e8,#2f8bff);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 14px rgba(21,101,232,.5);
+  animation:pwaIconPop 2.5s ease-in-out infinite;
+}
+@keyframes pwaIconPop{
+  0%,100%{ transform:scale(1); }
+  50%    { transform:scale(1.08); }
+}
+.pwa-icon-wrap svg{ width:20px;height:20px;color:#fff;flex-shrink:0; }
+.pwa-texts{ flex:1;min-width:0; }
+.pwa-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:1rem;
+  letter-spacing:.03em;color:#ffffff;
+  margin-bottom:3px;line-height:1.2;
+}
+.pwa-title em{ font-style:normal;color:#5aaeff; }
+.pwa-subtitle{
+  font-family:'Barlow',sans-serif;
+  font-size:.78rem;color:#c8d4e8;
+  font-weight:300;line-height:1.4;
+}
+.pwa-close-btn{
+  flex-shrink:0;
+  width:26px;height:26px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  color:#c8d4e8;
+  transition:background .25s,color .25s;
+  /* Taille tactile suffisante */
+  -webkit-tap-highlight-color:transparent;
+}
+.pwa-close-btn:active,
+.pwa-close-btn:hover{ background:rgba(255,255,255,.18);color:#fff; }
+.pwa-close-btn svg{ width:11px;height:11px; }
+
+/* Encart instruction appareil */
+.pwa-tip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(47,139,255,.09);
+  border:1px solid rgba(47,139,255,.2);
+  border-radius:11px;
+  padding:9px 12px;
+  margin-bottom:11px;
+}
+.pwa-tip-emoji{ font-size:1.3rem;flex-shrink:0; }
+.pwa-tip-text{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.83rem;font-weight:600;
+  color:#c8d4e8;letter-spacing:.02em;line-height:1.35;
+}
+.pwa-tip-text b{ color:#5aaeff;font-weight:700; }
+
+/* Bouton principal */
+.pwa-btn{
+  display:block;
+  width:100%;
+  padding:11px 16px;
+  background:linear-gradient(135deg,#1565e8,#2f8bff);
+  border:none;border-radius:50px;
+  color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:.88rem;
   letter-spacing:.1em;text-transform:uppercase;
-  transition:var(--transition);
-  box-shadow:0 4px 18px rgba(21,101,232,.4);
+  cursor:pointer;
+  box-shadow:0 4px 18px rgba(21,101,232,.45);
+  transition:transform .2s,box-shadow .2s;
+  -webkit-tap-highlight-color:transparent;
+  /* Important : pas de outline qui déborde sur Safari */
+  outline:none;
 }
-.install-btn:hover{background:var(--blue-electric);transform:translateY(-2px);box-shadow:0 8px 28px rgba(21,101,232,.6);}
-.install-btn svg{width:16px;height:16px;}
-.install-bar-close{
-  background:none;border:none;color:var(--grey-dark);cursor:pointer;
-  font-size:1.2rem;padding:4px 6px;transition:color var(--transition);
-  margin-left:4px;
-}
-.install-bar-close:hover{color:var(--white);}
+.pwa-btn:active{ transform:scale(.97); }
+.pwa-btn:hover{ box-shadow:0 6px 26px rgba(21,101,232,.65); }
 
 /* ============================================================
    LOADER
@@ -1407,52 +1506,79 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 
 <script>
 /* ============================================================
-   PWA INSTALL PROMPT
+   PWA INSTALL BANNER — fonctionne sur iOS, Android, desktop
+   Logique : s'affiche TOUJOURS après 3s (pas besoin de beforeinstallprompt)
    ============================================================ */
-let deferredPrompt = null;
-const installBarTop  = document.getElementById('install-bar-top');
-const installBtnTop  = document.getElementById('install-btn-top');
-const installBtnFtr  = document.getElementById('install-btn-footer');
-const installBarClose = document.getElementById('install-bar-top-close');
+(function(){
+  var DISMISSED_KEY = 'pwa_dismissed_v2';
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Show top bar
-  if(installBarTop) installBarTop.classList.add('visible');
-  // Show footer btn
-  if(installBtnFtr) installBtnFtr.style.display = 'inline-flex';
-});
+  // Ne pas réafficher si déjà fermé ou si déjà installé en standalone
+  if(localStorage.getItem(DISMISSED_KEY)) return;
+  if(window.matchMedia('(display-mode: standalone)').matches) return;
+  if(window.navigator.standalone === true) return; // iOS standalone
 
-function triggerInstall() {
-  if (!deferredPrompt) {
-    // iOS fallback
-    alert('Pour ajouter ce site à votre écran d'accueil :\n\nSur iPhone : appuyez sur le bouton Partager (□↑) puis "Sur l'écran d'accueil"\n\nSur Android : appuyez sur le menu ⋮ puis "Ajouter à l'écran d'accueil"');
-    return;
+  var banner   = document.getElementById('pwa-banner');
+  var closeBtn = document.getElementById('pwa-close-btn');
+  var actionBtn= document.getElementById('pwa-main-btn');
+  var tipEmoji = document.getElementById('pwa-tip-emoji');
+  var tipText  = document.getElementById('pwa-tip-text');
+  if(!banner) return;
+
+  // --- Détection appareil ---
+  var ua = (navigator.userAgent || '').toLowerCase();
+  var isIOS     = /iphone|ipad|ipod/.test(ua);
+  var isAndroid = /android/.test(ua);
+
+  if(isIOS){
+    tipEmoji.textContent = '🍎';
+    tipText.innerHTML = '<b>Sur iPhone :</b> appuie sur <b>Partager</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
+  } else if(isAndroid){
+    tipEmoji.textContent = '🤖';
+    tipText.innerHTML = '<b>Sur Android :</b> appuie sur les <b>3 points ⋮</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
+  } else {
+    tipEmoji.textContent = '💻';
+    tipText.innerHTML = 'Depuis le menu de ton navigateur, choisis <b>"Installer l\'application"</b>.';
   }
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then((choice) => {
-    if (choice.outcome === 'accepted') {
-      if(installBarTop) installBarTop.classList.remove('visible');
-      if(installBtnFtr) installBtnFtr.style.display = 'none';
-    }
-    deferredPrompt = null;
+
+  // Prompt natif Android (Chrome)
+  var nativePrompt = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    nativePrompt = e;
   });
-}
 
-if(installBtnTop)  installBtnTop.addEventListener('click',  triggerInstall);
-if(installBtnFtr)  installBtnFtr.addEventListener('click',  triggerInstall);
-if(installBarClose) installBarClose.addEventListener('click', () => {
-  installBarTop.classList.remove('visible');
-});
+  function show(){
+    banner.classList.add('pwa-show');
+  }
+  function hide(persist){
+    banner.classList.remove('pwa-show');
+    if(persist) localStorage.setItem(DISMISSED_KEY,'1');
+  }
 
-// Hide install bar if already installed
-if (window.matchMedia('(display-mode: standalone)').matches) {
-  if(installBarTop) installBarTop.style.display = 'none';
-  if(installBtnFtr) installBtnFtr.style.display = 'none';
-}
+  // Affichage après 3 secondes — aucune condition bloquante
+  setTimeout(show, 3000);
+
+  // Fermeture
+  closeBtn.addEventListener('click', function(){ hide(true); });
+
+  // Bouton action
+  actionBtn.addEventListener('click', function(){
+    if(nativePrompt){
+      nativePrompt.prompt();
+      nativePrompt.userChoice.then(function(r){
+        if(r.outcome === 'accepted') hide(true);
+        nativePrompt = null;
+      });
+    } else {
+      // iOS ou autre : on ferme simplement après que l'user a lu les instructions
+      hide(false);
+    }
+  });
+
+  // Installé via le navigateur → masquer
+  window.addEventListener('appinstalled', function(){ hide(true); });
+})();
 </script>
-
 
 <script>
 /* ============================================================
@@ -1508,6 +1634,47 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
   });
 })();
 </script>
+
+<!-- ============================================================
+     PWA INSTALL BANNER — bandeau fixe bas de page
+     ============================================================ -->
+<div id="pwa-banner">
+  <div class="pwa-card">
+
+    <!-- Ligne 1 : icône + texte + bouton fermer -->
+    <div class="pwa-row1">
+      <div class="pwa-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="8 17 12 21 16 17"/>
+          <line x1="12" y1="21" x2="12" y2="7"/>
+          <path d="M20 7H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2z"/>
+        </svg>
+      </div>
+      <div class="pwa-texts">
+        <div class="pwa-title">Ne rate rien des <em>actualités&nbsp;!</em></div>
+        <div class="pwa-subtitle">Ajoute le site à ton écran d'accueil pour être toujours au courant.</div>
+      </div>
+      <button class="pwa-close-btn" id="pwa-close-btn" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Ligne 2 : instruction selon l'appareil (remplie par JS) -->
+    <div class="pwa-tip">
+      <span class="pwa-tip-emoji" id="pwa-tip-emoji">📱</span>
+      <div class="pwa-tip-text" id="pwa-tip-text">Chargement…</div>
+    </div>
+
+    <!-- Bouton action -->
+    <button class="pwa-btn" id="pwa-main-btn">
+      ➕ Ajouter à l'écran d'accueil
+    </button>
+
+  </div>
+</div>
 
 </body>
 </html>
