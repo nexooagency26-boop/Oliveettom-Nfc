@@ -33,7 +33,9 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:var(--font-body);background:var(--blue-deep);color:var(--white);overflow-x:hidden;}
+body{font-family:var(--font-body);background:var(--blue-deep);color:var(--white);}
+/* overflow-x sur html+body casse position:fixed sur iOS — on le met sur un wrapper à la place */
+html{overflow-x:hidden;}
 img{display:block;max-width:100%;}
 a{text-decoration:none;color:inherit;}
 ul{list-style:none;}
@@ -1504,83 +1506,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 });
 </script>
 
-<script>
-/* ============================================================
-   PWA INSTALL BANNER — fonctionne sur iOS, Android, desktop
-   Logique : s'affiche TOUJOURS après 3s (pas besoin de beforeinstallprompt)
-   ============================================================ */
-(function(){
-  var DISMISSED_KEY = 'pwa_dismissed_v2';
 
-  // Ne pas réafficher si déjà fermé ou si déjà installé en standalone
-  if(localStorage.getItem(DISMISSED_KEY)) return;
-  if(window.matchMedia('(display-mode: standalone)').matches) return;
-  if(window.navigator.standalone === true) return; // iOS standalone
-
-  var banner   = document.getElementById('pwa-banner');
-  var closeBtn = document.getElementById('pwa-close-btn');
-  var actionBtn= document.getElementById('pwa-main-btn');
-  var tipEmoji = document.getElementById('pwa-tip-emoji');
-  var tipText  = document.getElementById('pwa-tip-text');
-  if(!banner) return;
-
-  // --- Détection appareil ---
-  var ua = (navigator.userAgent || '').toLowerCase();
-  var isIOS     = /iphone|ipad|ipod/.test(ua);
-  var isAndroid = /android/.test(ua);
-
-  if(isIOS){
-    tipEmoji.textContent = '🍎';
-    tipText.innerHTML = '<b>Sur iPhone :</b> appuie sur <b>Partager</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
-  } else if(isAndroid){
-    tipEmoji.textContent = '🤖';
-    tipText.innerHTML = '<b>Sur Android :</b> appuie sur les <b>3 points ⋮</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
-  } else {
-    tipEmoji.textContent = '💻';
-    tipText.innerHTML = 'Depuis le menu de ton navigateur, choisis <b>"Installer l\'application"</b>.';
-  }
-
-  // Prompt natif Android (Chrome)
-  var nativePrompt = null;
-  window.addEventListener('beforeinstallprompt', function(e){
-    e.preventDefault();
-    nativePrompt = e;
-  });
-
-  function show(){
-    banner.classList.add('pwa-show');
-  }
-  function hide(persist){
-    banner.classList.remove('pwa-show');
-    if(persist) localStorage.setItem(DISMISSED_KEY,'1');
-  }
-
-  // Affichage après 3 secondes — aucune condition bloquante
-  setTimeout(show, 3000);
-
-  // Fermeture
-  closeBtn.addEventListener('click', function(){ hide(true); });
-
-  // Bouton action
-  actionBtn.addEventListener('click', function(){
-    if(nativePrompt){
-      nativePrompt.prompt();
-      nativePrompt.userChoice.then(function(r){
-        if(r.outcome === 'accepted') hide(true);
-        nativePrompt = null;
-      });
-    } else {
-      // iOS ou autre : on ferme simplement après que l'user a lu les instructions
-      hide(false);
-    }
-  });
-
-  // Installé via le navigateur → masquer
-  window.addEventListener('appinstalled', function(){ hide(true); });
-})();
-</script>
-
-<script>
 /* ============================================================
    LIGHTBOX — Flyers événements
    ============================================================ */
@@ -1675,6 +1601,56 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 
   </div>
 </div>
+
+<script>
+/* PWA BANNER — script placé APRÈS le HTML du bandeau, donc les éléments existent */
+(function(){
+  var KEY = 'pwa_dismissed_v2';
+  var banner   = document.getElementById('pwa-banner');
+  var closeBtn = document.getElementById('pwa-close-btn');
+  var actionBtn = document.getElementById('pwa-main-btn');
+  var tipEmoji = document.getElementById('pwa-tip-emoji');
+  var tipText  = document.getElementById('pwa-tip-text');
+
+  /* Cacher si déjà fermé, ou si déjà installé */
+  if(localStorage.getItem(KEY) || window.matchMedia('(display-mode:standalone)').matches || navigator.standalone){
+    if(banner) banner.style.display='none';
+    return;
+  }
+
+  /* Détection appareil */
+  var ua = navigator.userAgent || '';
+  if(/iPhone|iPad|iPod/i.test(ua)){
+    tipEmoji.textContent='🍎';
+    tipText.innerHTML='<b>Sur iPhone :</b> appuie sur <b>Partager ↑</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
+  } else if(/Android/i.test(ua)){
+    tipEmoji.textContent='🤖';
+    tipText.innerHTML='<b>Sur Android :</b> appuie sur les <b>3 points ⋮</b> puis <b>"Ajouter à l\'écran d\'accueil"</b>.';
+  } else {
+    tipEmoji.textContent='💻';
+    tipText.innerHTML='Depuis le menu de ton navigateur, choisis <b>"Installer l\'application"</b>.';
+  }
+
+  /* Afficher après 3s */
+  setTimeout(function(){ banner.classList.add('pwa-show'); }, 3000);
+
+  function fermer(sauvegarder){
+    banner.classList.remove('pwa-show');
+    if(sauvegarder) localStorage.setItem(KEY,'1');
+  }
+
+  closeBtn.addEventListener('click', function(){ fermer(true); });
+
+  /* Prompt natif Android Chrome */
+  var prompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); prompt=e; });
+  actionBtn.addEventListener('click',function(){
+    if(prompt){ prompt.prompt(); prompt.userChoice.then(function(){ prompt=null; }); }
+    else { fermer(false); }
+  });
+  window.addEventListener('appinstalled',function(){ fermer(true); });
+})();
+</script>
 
 </body>
 </html>
